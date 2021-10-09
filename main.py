@@ -10,20 +10,17 @@ import emoji
 import logging
 from timeit import default_timer as timer
 
-from vizualization import vizualize
+from vizualization import visualize
 import db
 
 import nltk
 
-try:
-    nltk.data.find('tokenizers/vader_lexicon')
-except LookupError:
-    nltk.download('vader_lexicon')
 nltk.download('vader_lexicon')
-
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # BillGAtes not in all
+
+# todo mat_view_exists
 
 conspiracy_teories = {'Deep_State': ('DeepstateVirus', 'DeepStateVaccine', 'DeepStateFauci',),
                       'Qanon': ('QAnon', 'MAGA', 'WWG1WGA',),
@@ -83,8 +80,8 @@ def get_all_conspiracy_hashtags(conspiracies):
 def create_tmp_sentiment_table(tmp_table_name, sentiment_col):
     logging.debug('Creating sentiment in tmp table')
     hashtags = get_all_conspiracy_hashtags(conspiracy_teories)
-    for tweet_chunk_df in db.get_tweets_to_df(columns='id, content', hashtags=hashtags,
-                                              chunksize=3_000_000):
+    for tweet_chunk_df in db.get_all_tweets_to_df(columns=['id', 'content'], hashtags=hashtags,
+                                                  chunksize=2_000_000):
         compound = tweet_chunk_df['content'].apply_parallel(count_compound, num_processes=mp.cpu_count())
         tweet_chunk_df[sentiment_col] = compound
         new_table = tweet_chunk_df[['id', sentiment_col]].set_index('id')
@@ -133,9 +130,9 @@ def create_tables_by_conspiracy():
 def main():
     db.open_db_connection()
 
-    add_extreme_sentiment()
-    create_tables_by_conspiracy()
-    vizualize()
+    # add_extreme_sentiment()
+    # create_tables_by_conspiracy()
+    visualize(conspiracy_teories)
 
     db.close_db_connection()
 

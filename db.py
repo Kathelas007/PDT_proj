@@ -20,7 +20,8 @@ engine = None
 def open_db_connection():
     logging.debug('Opening DB connection')
     global engine
-    engine = sqlalchemy.create_engine('postgresql+psycopg2://kate:bNp2Crvxrbwz@192.168.0.31:54320/pdt2021_tweets', )
+    engine = sqlalchemy.create_engine('postgresql+psycopg2://kate:bNp2Crvxrbwz@spodlesny.eu:54320/pdt2021_tweets', )
+    # engine = sqlalchemy.create_engine('postgresql+psycopg2://kate:bNp2Crvxrbwz@192.168.0.31:54320/pdt2021_tweets', )
 
 
 def close_db_connection():
@@ -49,8 +50,12 @@ def copy_column(column_name, src_table, dst_table, on='id'):
     with engine.connect() as conn:
         conn.execute(
             f"""update {dst_table} as dst 
-            set {column_name} = src.{column_name} 
+            set dst.{column_name} = src.{column_name} 
             from {src_table} as src where src.{on} = dst.{on}""")
+        print(
+            f"""update {dst_table} as dst 
+                    set dst.{column_name} = src.{column_name} 
+                    from {src_table} as src where src.{on} = dst.{on}""")
 
 
 # ****** Table ****
@@ -112,14 +117,38 @@ def mat_view_update(view_name):
             f"REFRESH MATERIALIZED VIEW {view_name}")
 
 
-# ****** CONSPIRACY SPECIFIC QUERIES *************************************************
+# ****** Others ****
+
+def general_query(query, fetch='fetchone'):
+    with engine.connect() as conn:
+        result = conn.execute(query)
+
+        if fetch == 'fetchone':
+            return result.fetchone()[0]
+        elif fetch == 'fetchall':
+            return result.fetchall()
+        else:
+            raise ValueError('Bad argument. Fetch can be "fetchone" or "fetchall"')
+
+
+# ****** PANDAS QUERIES ************************************************************
+def pandas_select(query):
+    return pd.read_sql_query(query, con=engine)
+
+
+def df_to_table(df, table_name, if_exists):
+    df.to_sql(table_name, con=engine, if_exists=if_exists)
+
+
+# ****** SPECIFIC QUERIES ***********************************************
 def iterable_to_sql_lower_array(hashtags):
-    hashtags = [f"'{h.lower}'" for h in hashtags]
+    hashtags = [f"'{h.lower()}'" for h in hashtags]
     array = ', '.join(hashtags)
     return f'({array})'
 
 
-def get_tweets_to_df(columns: str, hashtags, chunksize, limit=None) -> Union[Iterator]:
+def get_all_tweets_to_df(columns: list, hashtags, chunksize, limit=None) -> Union[Iterator]:
+    columns = ', '.join([f't.{c}' for c in columns])
     hashtags = iterable_to_sql_lower_array(hashtags)
     query_text = f"""
       select {columns} from 
@@ -135,18 +164,58 @@ def get_tweets_to_df(columns: str, hashtags, chunksize, limit=None) -> Union[Ite
     return pd.read_sql_query(query_text, con=engine, chunksize=chunksize)
 
 
-def df_to_table(df, table_name, if_exists):
-    df.to_sql(table_name, con=engine, if_exists=if_exists)
-
-
 def create_mat_view_from_tweets(view_name, hashtags: tuple):
     hashtags = iterable_to_sql_lower_array(hashtags)
 
     query = f"""select t.* from 
                 (SELECT id from hashtags
-                  where LOWER(valuer) in {hashtags} ) as hashtags_filter
+                  where LOWER(value) in {hashtags} ) as hashtags_filter
                 inner join tweet_hashtags th on hashtags_filter.id = th.hashtag_id
                 inner join tweets t on th.tweet_id = t.id;"""
 
     with engine.connect() as conn:
         conn.execute(f"CREATE MATERIALIZED VIEW if not exists {view_name} as {query}")
+
+
+def get_extreme_teories_by_week(teories):
+    query = """SELECT date_part('year', happened_at::date) as year,
+           date_part('week', happened_at::date) AS weekly,
+           COUNT(id), extreme_sentiment
+            FROM {}
+            GROUP BY year, weekly, extreme_sentiment
+            ORDER BY year, weekly;"""
+
+    all_df = [pandas_select(query.format(teory)).reset_index(drop=True) for teory in teories]
+    for df, teory in zip(all_df, teories):
+        df['teory'] = teory
+
+    df = pd.concat(all_df)
+
+    return df
+
+
+def get_extreme_accounts(teory):
+    query = """
+    select ac.id, ac.name, ac.screen_name, count(ct.id) as tweet_count
+    from (select id, author_id
+          from {}
+          where extreme_sentiment is true) as ct
+             inner join accounts as ac on ct.author_id = ac.id
+    group by ac.id, ac.name, ac.screen_name
+    order by tweet_count DESC
+    limit 10;"""
+
+    return pandas_select(query.format(teory))
+
+
+def get_extreme_hashtags(teory):
+    query = f"""
+    select count(ct.id) as count, ht.value as hashtag from {teory} as ct
+    left join tweet_hashtags as th on th.tweet_id = ct.id
+    left join hashtags as ht on ht.id = th.hashtag_id
+    group by ht.value
+    order by count DESC
+    limit 10;"""
+
+    return pandas_select(query.format(teory))
+
