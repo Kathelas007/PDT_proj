@@ -18,9 +18,10 @@ import nltk
 nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-# BillGAtes not in all
-
 # todo mat_view_exists
+# todo link github
+# todo prihlasovaci k DB ven
+# todo duplicates
 
 conspiracy_teories = {'Deep_State': ('DeepstateVirus', 'DeepStateVaccine', 'DeepStateFauci',),
                       'Qanon': ('QAnon', 'MAGA', 'WWG1WGA',),
@@ -58,6 +59,7 @@ def remove_ignored_from_contend(contend: str):
 
 
 def count_compound(contend):
+    """Counts compound and returns weather it is extreme () or not"""
     global sid
 
     contend = remove_ignored_from_contend(contend)
@@ -78,6 +80,7 @@ def get_all_conspiracy_hashtags(conspiracies):
 
 
 def create_tmp_sentiment_table(tmp_table_name, sentiment_col):
+    """Fnc loads data from DB, counts sentiment and saves it to tmp table in DB."""
     logging.debug('Creating sentiment in tmp table')
     hashtags = get_all_conspiracy_hashtags(conspiracy_teories)
     for tweet_chunk_df in db.get_all_tweets_to_df(columns=['id', 'content'], hashtags=hashtags,
@@ -91,6 +94,7 @@ def create_tmp_sentiment_table(tmp_table_name, sentiment_col):
 
 
 def add_extreme_sentiment():
+    """Add extreme to tweets in DB"""
     extreme_col_name = 'extreme_sentiment'
 
     if db.column_exists('extreme_sentiment'):
@@ -116,6 +120,10 @@ def add_extreme_sentiment():
 
 
 def create_tables_by_conspiracy():
+    """
+    Creates materialised views of conspiracies
+    If they already exists, they are updated.
+    """
     first_table = list(conspiracy_teories.keys())[0]
     if db.mat_view_exists(first_table):
         logging.debug('Conspiracy tables already exists. Skipping')

@@ -18,9 +18,14 @@ engine = None
 
 
 def open_db_connection():
+    config = configparser.ConfigParser()
+    config.read('db.ini')
+    postgres = config['POSTGRES']
+
     logging.debug('Opening DB connection')
     global engine
-    engine = sqlalchemy.create_engine('postgresql+psycopg2://kate:bNp2Crvxrbwz@spodlesny.eu:54320/pdt2021_tweets', )
+    engine = sqlalchemy.create_engine(
+        f"postgresql+psycopg2://{postgres['name']}:{postgres['password']}@{postgres['server']}:{postgres['port']}/{postgres['database']}", )
     # engine = sqlalchemy.create_engine('postgresql+psycopg2://kate:bNp2Crvxrbwz@192.168.0.31:54320/pdt2021_tweets', )
 
 
@@ -218,4 +223,3 @@ def get_extreme_hashtags(teory):
     limit 10;"""
 
     return pandas_select(query.format(teory))
-
