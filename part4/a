@@ -1,0 +1,15 @@
+cycles                 & Počet karbocyklov v molekule                                  \\
+atom\_valence          & Suma valencie atómov v molekule                               \\
+gesteiger (rozne)   & Rôzne štatistické hodnoty odvodené z Gesteigerových nábojov atómov, napr. suma pozitívnych a negatívnych nábojov, ich priemery, a pod. \\
+hydrogen\_count        & Počet vodíkov v molekule                                      \\
+csp3                   & Pomer sp3 hybridizovaných uhlíkov ku všetkým uhlíkov          \\
+aromatic\_heavy\_atoms & Počet ťažkých atómov v aromatických cykloch                   \\
+balban\_j              & Topologický index komplexity molekuly                         \\
+hallkier               & Pomer kovalentných polomerov pre nehybridizované atómy uhlíka \\
+labute\_asa            & Obsah prístupnej plochy molekuly pre solvent                  \\
+h\_donors/h\_acceptors & Vodíkové donory a akceptory                                   \\
+carbon\_count          & Počet uhlíkov                                                 \\
+tpsa                   & Obsah polárnej povrchovej plochy molekuly                     \\
+druglikeness        & Počet violácií deskriptorov, ktoré identifikujú molekulu ako farmaceutický cieľ                                                        \\
+vsa\_logP\_N           & Rôzne atribúty vypočítanej lipofolity molekúl                 \\
+cycle\_type\_counts & Log16 hodnôt namapovaných počtov cyklov rôznch veľkostí na jednotky hexadecimálnej sústavy s ofsetom rovným veľkosti karbocyklu

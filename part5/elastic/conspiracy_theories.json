@@ -1,0 +1,33 @@
+{
+	"_source": false,
+	
+	"aggs":{
+		"hashtag_type_agg":{ 
+			"filters":{
+				"filters":{
+					"Deep_State": { "terms": { "hashtags" : ["DeepstateVirus", "DeepStateVaccine", "DeepStateFauci"]}},
+					"Qanon": { "terms": { "hashtags" : ["QAnon", "MAGA", "WWG1WGA"]}},
+					"QanonN": { "term": { "hashtags" : "QAnon"}},
+					"New_world_order": { "term": { "hashtags" : "Agenda21"}},
+					"Virus_Chinese_lab": { "terms": { "hashtags" : ["CCPVirus", "ChinaLiedPeopleDied"]}},
+					"GLobal_Warming": { "terms": { "hashtags" : ["ClimateChangeHoax", "GlobalWarmingHoax"]}},
+					"COVID19_microchipping": { "terms": { "hashtags" : ["SorosVirus", "BillGAtes"]}},
+					"COVID19_5G": { "terms": { "hashtags" : ["5GCoronavirus"]}},
+					"Moon_landing": { "terms": { "hashtags" : ["MoonLandingHoax", "moonhoax"]}},
+					"nine_eleven": { "terms": { "hashtags" : ["911truth", "911insidejob"]}},
+					"Pizzagate": { "terms": { "hashtags" : ["pizzaGateIsReal", "PedoGateIsReal"]}},
+					"Chemtrails": { "term": { "hashtags" : "Chemtrails"}},
+					"FlatEarth": { "term": { "hashtags" : "flatEarth"}},
+					"Illuminati": { "term": { "hashtags" : "illuminati"}},
+					"Reptilian": { "term": { "hashtags" : "reptilians"}}
+			}
+		},
+		  "aggs": {  
+				"week_agg": { 
+					"date_histogram": {"field": "happened_at", "calendar_interval": "month"},
+					"aggs": {	"sum_retweet_count": { "sum": { "field": "retweet_count"}}}
+				}
+			}
+	 	}
+	}
+}

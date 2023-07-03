@@ -1,0 +1,73 @@
+2.
+MATCH (n:Account)<-[f:FOLLOWS]-(fa:Account)
+RETURN n, COUNT(f) ORDER BY COUNT(f) DESC LIMIT 5
+
+3.
+MATCH path=allShortestPaths(
+(p:Account {screen_name:"katyperry"})
+<-[:FOLLOWS*1..100]-
+(k:Account {screen_name:'KimKardashian'}))
+return path, length(path)
+
+4.
+MATCH (a:Account)-[p:POSTS]->(t:Tweet)
+with a, p, count(p) as count_p
+order by count(p) desc
+limit 10
+
+MATCH (a)-[:POSTS]->(loosertweet)<-[r:RETWEETS]-(:Tweet)
+return a.screen_name,loosertweet.content, count(r)
+order by count(r)
+limit 10
+
+5.
+MATCH (dt:Account {screen_name:"realDonaldTrump"})-[:POSTS]->
+(dtTweet:Tweet)<-[r:RETWEETS]-(:Tweet)
+with dt, dtTweet, COUNT(r) as retweetCount order by COUNT(r) DESC limit 1
+
+CREATE (myA:Account {screen_name: "Katka", name:"Katka"})-[:POSTS]->
+(ownT:Tweet {content: "Some briliant_tweet"})-[:RETWEETS]->(dtTweet)
+with myA
+MATCH cr = (myA)-[:POSTS]->(:Tweet)-[:RETWEETS]->(:Tweet)
+<-[:POSTS]-(:Account)
+RETURN cr
+
+6.
+MATCH (stl:Account {screen_name:"777stl"} )-[:FOLLOWS]->(oldFollow:Account)
+WITH oldFollow, stl
+
+MATCH (silimarA:Account)-[f:FOLLOWS]->(oldFollow)
+WITH silimarA, count(f) as score , collect(DISTINCT oldFollow) as oldFollow, stl
+WHERE not silimarA in oldFollow AND stl <> silimarA
+return silimarA.screen_name, score order by score DESC limit 10
+
+7.
+MATCH (dw:Account {screen_name:"DaynerWilson"})-[:POSTS]->(dwt:Tweet)-[:RETWEETS*1..2]->(com
+with common, dw, dwt
+MATCH (similarA:Account)-[p:POSTS]->(t:Tweet)-[rt:RETWEETS]->(common:Tweet)
+WHERE dw <> similarA
+return similarA.screen_name, count(rt) as score order by score DESC limit 10
+
+8.
+MATCH (similarT:Tweet)<-[po:POSTS]-(otherA:Account)-[:FOLLOWS*5]->
+(mainA:Account)-[pm:POSTS]->(mainT:Tweet {id: "1289380305728503808"})
+WHERE not exists((similarT)-[:RETWEETS]-(mainT))
+RETURN similarT, size(apoc.coll.intersection(
+split(similarT.content, " "),
+split(mainT.content, " ")
+)) as score
+ORDER by score
+DESC limit 5
+
+BONUS.
+
+MATCH (start:Account)-[:POSTS]->(:Tweet)-[:RETWEETS]->(:Tweet)
+<-[:POSTS]-(end:Account)
+CREATE (start)-[:ACCOUNTRETWEET]->(end)
+
+
+MATCH
+(kp:Account {screen_name:"katyperry"}),
+(dt:Account {screen_name:"realDonaldTrump"}),
+p = shortestPath((kp)-[:ACCOUNTRETWEET*1..15]-(dt))
+RETURN p

@@ -1,0 +1,41 @@
+{
+	"_source": false,
+	"query": {		
+		"function_score":{
+			
+			"query":{
+					"bool":{
+
+						"must":{
+							"bool":{
+								"should": [
+									{"match": {"author.name.shingles": 
+														 {"query": "gates s0ros vaccine micr0chip", "boost": 6 , "fuzziness": "AUTO"}}},
+									{"match": {"author.content": 
+														 {"query": "gates s0ros vaccine micr0chip", "boost": 8, "fuzziness": "AUTO"}}},
+									{"match": {"author.description.shingles": 
+														 {"query": "gates s0ros vaccine micr0chip", "boost": 6 , "fuzziness": "AUTO"}}},
+									{"match": {"author.screen_name.ngram": 
+														 {"query": "gates s0ros vaccine micr0chip", "boost": 10 , "fuzziness": "AUTO"}}}
+										],
+								"minimum_should_match" : 1
+							}
+						},
+
+						"filter": [
+								{"match": {"hashtags": "qanon"}},
+							  {"range": { "author.statuses_count": {"gt": 1000} }}
+								 ],
+
+						"should": { "match": { "mentions.name.ngram": {"query": "real", "boost": 10}}}
+
+					}
+			},
+			"functions": [
+				{"filter": {"range": {"retweet_count": {"gte": 100, "lte": 500}}},"weight": 6},
+				{"filter": {"range": {"author.followers_count": {"gt": 100}}},"weight": 3}
+			]
+		}
+	},
+	"aggs": {"hash_agg": {  "terms": {"field": "hashtags" , "size": 1000 }}}
+}

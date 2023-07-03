@@ -1,0 +1,101 @@
+{
+	"properties": {
+			"content": { 
+			"type": "text",
+			"analyzer": "englando"
+		},
+			"favorite_count": {
+			"type": "long"
+		},
+			"retweet_count": {
+			"type": "long"
+		},
+			"happened_at": {
+			"type": "date"
+		},
+		"author": {
+			"properties": {
+					"id": { 
+					"type": "keyword" 
+				},
+				"name": { 
+					"type": "text",
+					"analyzer": "englando",
+					"fields":{
+						"ngram": {
+							"type": "text",
+					    "analyzer":  "custom_ngram"
+						},
+						"shingle": {
+							"type": "text",
+					    "analyzer":  "custom_shingles"
+						}
+					}
+				},
+				"screen_name": { 
+					"type": "text" ,
+					"analyzer": "englando",
+					"fields":{
+						"ngram": {
+							"type": "text",
+					    "analyzer":  "custom_ngram"
+						}
+					}
+				},
+				"description": { 
+				"type": "text",
+				"analyzer": "englando",
+				"fields": {
+						"shingle": {
+							"type": "text",
+					    "analyzer":  "custom_shingles"
+						}
+				  }
+				},
+				"statuses_count": { 
+				"type": "long"
+				},
+				"followers_count": { 
+				"type": "long"
+				}
+			}
+		},
+		"hashtags": {
+			"type": "keyword"
+		},
+		"mentions":{
+			"type": "nested",
+			"properties": {
+					"id": { 
+					"type": "keyword" 
+				},
+				"name": { 
+					"type": "text" ,
+					"analyzer": "englando",
+					"fields":{
+						"ngram": {
+							"type": "text",
+					    "analyzer":  "custom_ngram"
+						},
+						"shingle": {
+							"type": "text",
+					    "analyzer":  "custom_shingles"
+						}
+					}
+				},
+				"screen_name": { 
+					"type": "text" ,
+					"analyzer": "englando",
+					"fields":{
+						"ngram": {
+							"type": "text",
+					    "analyzer":  "custom_ngram"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
